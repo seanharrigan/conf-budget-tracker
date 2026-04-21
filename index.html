@@ -539,32 +539,35 @@ function showSyncStatus(state, code) {
   if (state === 'saved') setTimeout(() => { el.textContent = ''; el.className = 'sync-status'; }, 3000);
 }
 
+function b64decode(str) {
+  const binary = atob(str.replace(/\n/g, ''));
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
+}
+
 async function loadMeals() {
   let ghMeals = null;
   try {
-    // Use the API (not raw.githubusercontent.com) so we always get the latest commit, not a cached version
     const headers = { Accept: 'application/vnd.github+json' };
     if (ghToken()) headers.Authorization = `Bearer ${ghToken()}`;
     const res = await fetch(API_URL, { headers });
     if (res.ok) {
       const file = await res.json();
       if (file.content) {
-        const decoded = decodeURIComponent(escape(atob(file.content.replace(/\n/g, ''))));
-        const data = JSON.parse(decoded);
+        const data = JSON.parse(b64decode(file.content));
         if (Array.isArray(data)) ghMeals = data;
       }
     }
-  } catch (e) {}
+  } catch (e) { console.warn('GitHub load failed', e); }
 
-  let localMeals = null;
+  // GitHub is source of truth if reachable; localStorage is fallback only
+  if (ghMeals) return ghMeals;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) localMeals = JSON.parse(raw);
+    if (raw) return JSON.parse(raw);
   } catch (e) {}
-
-  // Prefer whichever source has more entries (avoids overwriting local data on first sync)
-  if (ghMeals && localMeals) return ghMeals.length >= localMeals.length ? ghMeals : localMeals;
-  return ghMeals || localMeals || SEED.slice();
+  return SEED.slice();
 }
 
 function saveMeals() {
