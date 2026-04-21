@@ -247,9 +247,28 @@
   .nd { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
   .nl { flex: 1; height: 1px; background: var(--border); }
   footer { text-align: center; font-size: 0.62rem; color: var(--muted); letter-spacing: 0.08em; padding-bottom: 24px; }
+
+  /* Desktop card layout */
+  @media (min-width: 700px) {
+    body {
+      background: #0d211f;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 40px 24px 60px;
+    }
+    .app-card {
+      width: 100%;
+      max-width: 700px;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 16px 56px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04);
+    }
+  }
 </style>
 </head>
 <body>
+<div class="app-card">
 
 <nav>
   <svg class="logo-svg" viewBox="0 0 52 40" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -662,5 +681,6 @@ initSort();
 render();
 </script>
 
+</div><!-- /.app-card -->
 </body>
 </html>
