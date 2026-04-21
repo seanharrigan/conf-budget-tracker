@@ -518,11 +518,13 @@ const API_URL   = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/
 
 function ghToken() { return localStorage.getItem('gh-token'); }
 
-function showSyncStatus(state) {
+function showSyncStatus(state, code) {
   const el = document.getElementById('sync-status');
   if (!el) return;
   el.className = 'sync-status ' + state;
-  el.textContent = state === 'saving' ? 'Syncing…' : state === 'saved' ? '✓ Saved' : 'Sync failed';
+  if (state === 'saving') el.textContent = 'Syncing…';
+  else if (state === 'saved') el.textContent = '✓ Saved';
+  else el.textContent = 'Sync failed' + (code ? ' (' + code + ')' : '');
   if (state === 'saved') setTimeout(() => { el.textContent = ''; el.className = 'sync-status'; }, 3000);
 }
 
@@ -555,8 +557,12 @@ function saveMeals() {
 async function saveToGitHub(mealsData) {
   showSyncStatus('saving');
   try {
-    // GET without auth so SHA retrieval always works on a public repo
-    const getRes = await fetch(API_URL, { headers: { Accept: 'application/vnd.github+json' } });
+    const authHeaders = {
+      Authorization: `Bearer ${ghToken()}`,
+      Accept: 'application/vnd.github+json'
+    };
+    // Use auth on GET too so it works on private repos
+    const getRes = await fetch(API_URL, { headers: authHeaders });
     let sha;
     if (getRes.ok) sha = (await getRes.json()).sha;
 
@@ -564,15 +570,13 @@ async function saveToGitHub(mealsData) {
     const encoded = btoa(unescape(encodeURIComponent(body)));
     const putRes = await fetch(API_URL, {
       method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${ghToken()}`,
-        Accept: 'application/vnd.github+json',
-        'Content-Type': 'application/json'
-      },
+      headers: { ...authHeaders, 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: 'Update meals', content: encoded, ...(sha && { sha }), branch: GH_BRANCH })
     });
-    showSyncStatus(putRes.ok ? 'saved' : 'error');
+    if (!putRes.ok) { const t = await putRes.json().catch(() => ({})); console.error('GH sync error', putRes.status, t); }
+    showSyncStatus(putRes.ok ? 'saved' : 'error', putRes.ok ? null : putRes.status);
   } catch (e) {
+    console.error('GH sync exception', e);
     showSyncStatus('error');
   }
 }
