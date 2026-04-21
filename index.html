@@ -149,11 +149,12 @@
     margin-bottom: 14px;
     border-color: var(--border);
   }
+  .add-form { scroll-margin-top: 12px; }
   .form-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
   @media(min-width:600px) { .form-grid { grid-template-columns: 1fr 1fr; } }
   .form-field { display: flex; flex-direction: column; gap: 4px; }
   .form-field label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); }
-  .form-field input, .form-field select { background: var(--bg-dark); color: var(--white); border: 1px solid var(--border); border-radius: 6px; padding: 9px 10px; font-family: inherit; font-size: 0.88rem; }
+  .form-field input, .form-field select { background: var(--bg-dark); color: var(--white); border: 1px solid var(--border); border-radius: 6px; padding: 9px 10px; font-family: inherit; font-size: 16px; }
   .form-field input:focus, .form-field select:focus { outline: none; border-color: var(--olive); }
   .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 14px; }
   .btn-secondary { background: transparent; color: var(--muted); border: 1px solid var(--border); padding: 9px 16px; border-radius: 6px; font-family: inherit; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; cursor: pointer; }
@@ -432,8 +433,14 @@ function initForm() {
   const cancelBtn = document.getElementById('cancel-add');
 
   toggleBtn.addEventListener('click', () => {
+    const wasOpen = form.classList.contains('open');
     form.classList.toggle('open');
-    if (form.classList.contains('open')) document.getElementById('f-location').focus();
+    if (!wasOpen) {
+      // wait for the expand transition so scrollIntoView lands on the full form
+      setTimeout(() => {
+        form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 340);
+    }
   });
 
   cancelBtn.addEventListener('click', () => {
