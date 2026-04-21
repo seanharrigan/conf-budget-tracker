@@ -5,5 +5,12 @@
     "location": "Air Canada AC342 (YVR→YOW)",
     "cost": 13.6,
     "receipt": "meal-1776803635485.jpeg"
+  },
+  {
+    "day": "Tue Apr 21",
+    "mealType": "Dinner",
+    "location": "Bier Markt",
+    "cost": 44.83,
+    "receipt": "meal-1776814786936.jpeg"
   }
 ]
