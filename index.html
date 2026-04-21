@@ -46,6 +46,37 @@
   .brand-text .rc { font-size: 1.05rem; font-weight: 700; color: var(--white); letter-spacing: 0.04em; }
   .nav-right { margin-left: auto; font-size: 0.72rem; color: var(--muted); text-align: right; letter-spacing: 0.06em; }
   .nav-right strong { color: var(--olive); display: block; font-size: 0.82rem; }
+  .sync-status { font-size: 0.65rem; letter-spacing: 0.04em; white-space: nowrap; transition: opacity 0.4s; }
+  .sync-status:empty { opacity: 0; }
+  .sync-status.saving { color: var(--muted); }
+  .sync-status.saved  { color: var(--olive); }
+  .sync-status.error  { color: var(--red); }
+  .settings-btn {
+    background: none; border: none; color: var(--muted);
+    cursor: pointer; font-size: 1rem; padding: 5px 7px;
+    border-radius: 5px; transition: color 0.15s, background 0.15s; flex-shrink: 0;
+  }
+  .settings-btn:hover { color: var(--white); background: var(--surface2); }
+  .settings-btn.has-token { color: var(--olive); }
+  .settings-panel {
+    background: var(--bg-dark);
+    border-bottom: 1px solid var(--border);
+    max-height: 0; overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+  .settings-panel.open { max-height: 180px; }
+  .settings-content { padding: 14px 20px; }
+  .settings-desc { font-size: 0.71rem; color: var(--muted); margin-bottom: 10px; line-height: 1.55; }
+  .settings-desc strong { color: var(--offwhite); font-weight: 600; }
+  .token-row { display: flex; gap: 8px; }
+  .token-input {
+    flex: 1; background: var(--surface); color: var(--white);
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 8px 10px; font-family: monospace; font-size: 0.75rem;
+  }
+  .token-input:focus { outline: none; border-color: var(--olive); }
+  .settings-active { display: flex; align-items: center; gap: 12px; }
+  .settings-active-label { font-size: 0.78rem; color: var(--olive); font-weight: 600; }
 
   .hero {
     background: var(--bg-dark);
@@ -368,7 +399,27 @@
     <strong>CADTH Ottawa 2026</strong>
     Sean Harrigan
   </div>
+  <span class="sync-status" id="sync-status"></span>
+  <button class="settings-btn" id="settings-btn" title="Sync settings">⚙</button>
 </nav>
+
+<div class="settings-panel" id="settings-panel">
+  <div class="settings-content">
+    <div id="settings-no-token">
+      <p class="settings-desc">Paste a GitHub fine-grained token with <strong>Contents: Read &amp; write</strong> access to this repo. Saved once, never asked again — meals sync across all your devices.</p>
+      <div class="token-row">
+        <input type="password" class="token-input" id="token-input" placeholder="github_pat_…" autocomplete="off" spellcheck="false">
+        <button type="button" class="add-btn" id="token-save">Save</button>
+      </div>
+    </div>
+    <div id="settings-has-token" style="display:none">
+      <div class="settings-active">
+        <span class="settings-active-label">✓ GitHub sync active</span>
+        <button type="button" class="btn-secondary" id="token-clear">Remove token</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="hero">
   <h2>CADTH Conference Ottawa 2026</h2>
@@ -458,18 +509,68 @@ const SEED = [
   { day: "Tue Apr 21", mealType: "Breakfast", location: "Air Canada AC342 (YVR→YOW)", cost: 13.60 }
 ];
 
-function loadMeals() {
+const GH_OWNER  = 'seanharrigan';
+const GH_REPO   = 'conf-budget-tracker';
+const GH_BRANCH = 'main';
+const GH_FILE   = 'meals.json';
+const RAW_URL   = `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_BRANCH}/${GH_FILE}`;
+const API_URL   = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_FILE}`;
+
+function ghToken() { return localStorage.getItem('gh-token'); }
+
+function showSyncStatus(state) {
+  const el = document.getElementById('sync-status');
+  if (!el) return;
+  el.className = 'sync-status ' + state;
+  el.textContent = state === 'saving' ? 'Syncing…' : state === 'saved' ? '✓ Saved' : 'Sync failed';
+  if (state === 'saved') setTimeout(() => { el.textContent = ''; el.className = 'sync-status'; }, 3000);
+}
+
+async function loadMeals() {
+  try {
+    const res = await fetch(RAW_URL + '?_=' + Date.now());
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) return data;
+    }
+  } catch (e) {}
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) return JSON.parse(raw);
   } catch (e) {}
   return SEED.slice();
 }
+
 function saveMeals() {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(meals)); } catch (e) {}
+  if (ghToken()) saveToGitHub(meals);
 }
 
-let meals = loadMeals();
+async function saveToGitHub(mealsData) {
+  showSyncStatus('saving');
+  try {
+    const headers = {
+      Authorization: `Bearer ${ghToken()}`,
+      Accept: 'application/vnd.github+json',
+      'Content-Type': 'application/json'
+    };
+    const getRes = await fetch(API_URL, { headers });
+    let sha;
+    if (getRes.ok) sha = (await getRes.json()).sha;
+
+    const body = JSON.stringify(mealsData, null, 2);
+    const encoded = btoa(unescape(encodeURIComponent(body)));
+    const putRes = await fetch(API_URL, {
+      method: 'PUT', headers,
+      body: JSON.stringify({ message: 'Update meals', content: encoded, ...(sha && { sha }), branch: GH_BRANCH })
+    });
+    showSyncStatus(putRes.ok ? 'saved' : 'error');
+  } catch (e) {
+    showSyncStatus('error');
+  }
+}
+
+let meals = [];
 
 const MEAL_ORDER = { Breakfast: 0, Lunch: 1, Dinner: 2, Snack: 3 };
 const DAY_ORDER = {};
@@ -776,9 +877,52 @@ function initForm() {
   });
 }
 
-initForm();
-initSort();
-render();
+function initSettings() {
+  const btn       = document.getElementById('settings-btn');
+  const panel     = document.getElementById('settings-panel');
+  const noToken   = document.getElementById('settings-no-token');
+  const hasToken  = document.getElementById('settings-has-token');
+  const input     = document.getElementById('token-input');
+  const saveBtn   = document.getElementById('token-save');
+  const clearBtn  = document.getElementById('token-clear');
+
+  function refresh() {
+    const active = !!ghToken();
+    noToken.style.display  = active ? 'none'  : 'block';
+    hasToken.style.display = active ? 'block' : 'none';
+    btn.classList.toggle('has-token', active);
+  }
+
+  btn.addEventListener('click', () => panel.classList.toggle('open'));
+
+  saveBtn.addEventListener('click', () => {
+    const val = input.value.trim();
+    if (!val) return;
+    localStorage.setItem('gh-token', val);
+    input.value = '';
+    refresh();
+    panel.classList.remove('open');
+    saveToGitHub(meals);
+  });
+
+  clearBtn.addEventListener('click', () => {
+    localStorage.removeItem('gh-token');
+    refresh();
+  });
+
+  refresh();
+}
+
+async function init() {
+  meals = await loadMeals();
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(meals)); } catch(e) {}
+  initForm();
+  initSort();
+  initSettings();
+  render();
+}
+
+init();
 </script>
 
 </div><!-- /.app-card -->
