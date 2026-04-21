@@ -163,6 +163,8 @@
   .grid-head > div[data-sort] { cursor: pointer; user-select: none; transition: color 0.15s; }
   .grid-head > div[data-sort]:hover,
   .grid-head > div[data-sort].active { color: var(--white); }
+  /* Ghost spacer balances the sort-ind on the right so header text is truly centered */
+  .grid-head > div[data-sort]::before { content: ''; width: 13px; flex-shrink: 0; }
 
   .sort-ind {
     display: inline-flex; flex-direction: column; gap: 2px;
