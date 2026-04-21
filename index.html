@@ -542,10 +542,17 @@ function showSyncStatus(state, code) {
 async function loadMeals() {
   let ghMeals = null;
   try {
-    const res = await fetch(RAW_URL + '?_=' + Date.now());
+    // Use the API (not raw.githubusercontent.com) so we always get the latest commit, not a cached version
+    const headers = { Accept: 'application/vnd.github+json' };
+    if (ghToken()) headers.Authorization = `Bearer ${ghToken()}`;
+    const res = await fetch(API_URL, { headers });
     if (res.ok) {
-      const data = await res.json();
-      if (Array.isArray(data)) ghMeals = data;
+      const file = await res.json();
+      if (file.content) {
+        const decoded = decodeURIComponent(escape(atob(file.content.replace(/\n/g, ''))));
+        const data = JSON.parse(decoded);
+        if (Array.isArray(data)) ghMeals = data;
+      }
     }
   } catch (e) {}
 
