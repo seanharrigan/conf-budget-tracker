@@ -299,7 +299,41 @@
   .cost { text-align: right; font-weight: 700; color: var(--offwhite); font-variant-numeric: tabular-nums; }
   .cost-wrap { position: relative; display: inline-block; }
   .day-tag { font-size: 0.72rem; color: var(--muted); font-weight: 500; white-space: nowrap; }
-  .location { color: var(--muted); font-size: 0.77rem; }
+  .location { color: var(--muted); font-size: 0.77rem; display: flex; align-items: center; gap: 6px; }
+  .receipt-btn {
+    background: none; border: none; color: var(--muted);
+    cursor: pointer; padding: 2px; flex-shrink: 0;
+    display: inline-flex; align-items: center;
+    transition: color 0.15s;
+  }
+  .receipt-btn:hover { color: var(--olive); }
+
+  #receipt-modal {
+    position: fixed; inset: 0;
+    background: rgba(10, 20, 19, 0.92);
+    z-index: 100;
+    display: none;
+    align-items: center; justify-content: center;
+    padding: 24px;
+    animation: fadeIn 0.18s ease;
+  }
+  #receipt-modal.open { display: flex; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  #receipt-img {
+    max-width: 100%; max-height: 100%;
+    border-radius: 8px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+  }
+  #receipt-close {
+    position: absolute; top: 16px; right: 16px;
+    background: rgba(255,255,255,0.1); color: var(--white);
+    border: none; width: 40px; height: 40px; border-radius: 50%;
+    font-size: 1.5rem; line-height: 1; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+  }
+  #receipt-close:hover { background: rgba(255,255,255,0.2); }
+  #receipt-loading { color: var(--muted); font-size: 0.85rem; }
 
   .empty-row { padding: 48px 16px; text-align: center; color: var(--muted); font-size: 0.8rem; }
 
@@ -474,6 +508,10 @@
         <label for="f-cost">Cost (CAD)</label>
         <input type="number" id="f-cost" step="0.01" min="0" required placeholder="0.00" inputmode="decimal">
       </div>
+      <div class="form-field" style="grid-column: 1 / -1">
+        <label for="f-receipt">Receipt Photo (optional)</label>
+        <input type="file" id="f-receipt" accept="image/*" capture="environment">
+      </div>
     </div>
     <div class="form-actions">
       <button type="button" class="btn-secondary" id="cancel-add">Cancel</button>
@@ -601,6 +639,52 @@ async function saveToGitHub(mealsData) {
   }
 }
 
+function uploadImage(file) {
+  return new Promise((resolve, reject) => {
+    if (!ghToken()) { reject(new Error('no token')); return; }
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const base64 = e.target.result.split(',')[1];
+        const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+        const filename = 'meal-' + Date.now() + '.' + ext;
+        const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/images/${filename}`;
+        const res = await fetch(url, {
+          method: 'PUT',
+          headers: {
+            Authorization: `Bearer ${ghToken()}`,
+            Accept: 'application/vnd.github+json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ message: 'Add receipt ' + filename, content: base64, branch: GH_BRANCH })
+        });
+        if (res.ok) resolve(filename);
+        else reject(new Error('status ' + res.status));
+      } catch (err) { reject(err); }
+    };
+    reader.onerror = () => reject(new Error('read failed'));
+    reader.readAsDataURL(file);
+  });
+}
+
+function showReceiptModal(filename) {
+  const modal = document.getElementById('receipt-modal');
+  const img = document.getElementById('receipt-img');
+  const loading = document.getElementById('receipt-loading');
+  img.style.display = 'none';
+  loading.style.display = 'inline';
+  img.onload = () => { loading.style.display = 'none'; img.style.display = 'block'; };
+  img.onerror = () => { loading.textContent = 'Could not load receipt.'; };
+  img.src = `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_BRANCH}/images/${filename}?t=${Date.now()}`;
+  modal.classList.add('open');
+}
+
+function initReceiptModal() {
+  const modal = document.getElementById('receipt-modal');
+  document.getElementById('receipt-close').addEventListener('click', () => modal.classList.remove('open'));
+  modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('open'); });
+}
+
 let meals = [];
 
 const MEAL_ORDER = { Breakfast: 0, Lunch: 1, Dinner: 2, Snack: 3 };
@@ -671,7 +755,7 @@ function renderTable() {
       <div class="meal-row grid-row${justAdded}">
         <div class="day-tag">${esc(m.day)}</div>
         <div><span class="meal-badge ${badgeCls}">${esc(m.mealType)}</span></div>
-        <div class="location">${esc(m.location)}</div>
+        <div class="location"><span>${esc(m.location)}</span>${m.receipt ? `<button type="button" class="receipt-btn" data-receipt="${esc(m.receipt)}" title="View receipt" aria-label="View receipt"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>` : ''}</div>
         <div class="cost"><span class="cost-wrap"><button type="button" class="row-delete-x" aria-label="Delete meal">×</button>$${m.cost.toFixed(2)}</span></div>
       </div>
       <div class="confirm-overlay">
@@ -736,6 +820,14 @@ function attachRowHandlers(wrap, idx) {
   const confirmOverlay = wrap.querySelector('.confirm-overlay');
   const confirmCancel = wrap.querySelector('.confirm-cancel');
   const confirmDelete = wrap.querySelector('.confirm-delete');
+  const receiptBtn = wrap.querySelector('.receipt-btn');
+
+  if (receiptBtn) {
+    receiptBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      showReceiptModal(receiptBtn.dataset.receipt);
+    });
+  }
 
   xBtn.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -890,14 +982,26 @@ function initForm() {
     resetDefaults();
   });
 
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const day = daySel.value;
     const mealType = mealSel.value;
     const location = document.getElementById('f-location').value.trim();
     const cost = parseFloat(document.getElementById('f-cost').value);
+    const receiptFile = document.getElementById('f-receipt').files[0];
     if (!day || !mealType || !location || !isFinite(cost)) return;
-    meals.push({ day, mealType, location, cost });
+
+    const meal = { day, mealType, location, cost };
+    if (receiptFile) {
+      try {
+        showSyncStatus('saving');
+        meal.receipt = await uploadImage(receiptFile);
+      } catch (err) {
+        console.error('Receipt upload failed', err);
+        showSyncStatus('error');
+      }
+    }
+    meals.push(meal);
     saveMeals();
     recentlyAddedIdx = meals.length - 1;
     form.classList.remove('open');
@@ -950,6 +1054,7 @@ async function init() {
   initForm();
   initSort();
   initSettings();
+  initReceiptModal();
   render();
 }
 
@@ -957,5 +1062,11 @@ init();
 </script>
 
 </div><!-- /.app-card -->
+
+<div id="receipt-modal">
+  <button type="button" id="receipt-close" aria-label="Close">×</button>
+  <span id="receipt-loading">Loading…</span>
+  <img id="receipt-img" alt="Receipt" style="display:none">
+</div>
 </body>
 </html>
