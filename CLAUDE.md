@@ -2,21 +2,31 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project Status
+## Project
 
-This repository is currently uninitialized beyond `README.md`. There is no source code, build system, dependency manifest, or test suite yet. The project's stated purpose (from `README.md`) is a **Conference Per Diem Meal Tracker**.
+**Conference Per Diem Meal Tracker** — a single-page, single-file HTML app (`index.html`) Sean uses to log meals against a daily per-diem while on conference trips. No build, no deps, no backend. Open the file in a browser.
 
-When asked to implement features, first establish the stack (language, framework, package manager) with the user before scaffolding — no conventions have been set.
+## Adding a meal (primary workflow)
 
-## Git Workflow
+When the user sends a receipt, append one object to the `meals` array inside the `<script>` block at the bottom of `index.html`. Schema:
 
-- `main` is the default branch.
-- Active development branch for Claude-authored work: `claude/add-claude-documentation-9G0jy`. Commit and push there unless the user specifies otherwise.
-- Push with `git push -u origin <branch>`. Do not open a PR unless explicitly requested.
+```js
+{ day: "Tue Apr 21", mealType: "Breakfast", location: "…", cost: 13.60 }
+```
 
-## Notes for Future Sessions
+- `day` must exactly match one of the `key` values in the `DAYS` array above it — day filtering for the per-day budget strip keys off string equality.
+- `mealType` is `Breakfast` | `Lunch` | `Dinner` | `Snack` (case matters for the badge CSS: the template does `'meal-' + mealType.toLowerCase()`).
+- `cost` is a number in CAD (the column header says "Cost (CAD)"; don't silently mix currencies).
+- Totals, budget bars, and warn/over colors (olive → orange at 80% → red at 100%) are all derived — don't hand-edit the summary stats.
 
-Once a stack is chosen and code is added, update this file with:
-- Build / lint / test commands (including how to run a single test).
-- The domain model for per-diem tracking (trips, days, meals, rates) — this is the core of the app and will likely span multiple files.
-- Any external integrations (GSA per-diem rates, expense systems) once added.
+## Current trip config
+
+- **Trip:** CADTH, Ottawa, 2026
+- **Dates:** Tue Apr 21 – Fri Apr 24, 2026
+- **Per diem:** $95 CAD/day → $380 total
+- Edit `BUDGET` and `DAYS` at the top of the `<script>` to change these.
+
+## Git workflow
+
+- Active branch: `claude/add-claude-documentation-9G0jy`. Commit each receipt and push (`git push -u origin <branch>`).
+- Do not open a PR unless explicitly asked.
