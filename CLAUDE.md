@@ -6,18 +6,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Conference Per Diem Meal Tracker** — a single-page, single-file HTML app (`index.html`) Sean uses to log meals against a daily per-diem while on conference trips. No build, no deps, no backend. Open the file in a browser.
 
-## Adding a meal (primary workflow)
+## Adding a meal
 
-When the user sends a receipt, append one object to the `meals` array inside the `<script>` block at the bottom of `index.html`. Schema:
+Primary workflow is the in-page **+ Add Meal** form, which persists entries to `localStorage` under `ottawa-cadth-2026-meals` (scoped per browser). Editing source directly only affects users who have no localStorage entry yet — existing users already have their own state.
+
+Data schema (same for `SEED` in source and the stored array):
 
 ```js
 { day: "Tue Apr 21", mealType: "Breakfast", location: "…", cost: 13.60 }
 ```
 
-- `day` must exactly match one of the `key` values in the `DAYS` array above it — day filtering for the per-day budget strip keys off string equality.
-- `mealType` is `Breakfast` | `Lunch` | `Dinner` | `Snack` (case matters for the badge CSS: the template does `'meal-' + mealType.toLowerCase()`).
-- `cost` is a number in CAD (the column header says "Cost (CAD)"; don't silently mix currencies).
-- Totals, budget bars, and warn/over colors (olive → orange at 80% → red at 100%) are all derived — don't hand-edit the summary stats.
+- `day` must exactly match one of the `key` values in the `DAYS` array — per-day budget filtering uses string equality.
+- `mealType` is `Breakfast` | `Lunch` | `Dinner` | `Snack` (case matters: the badge class is `'meal-' + mealType.toLowerCase()`).
+- `cost` is a number in CAD (column header is "Cost (CAD)"; do not mix currencies silently).
+- Totals, budget bars, and warn/over colors (olive → orange at 80% → red at 100%) are derived — never hand-edit the summary stats.
+
+If the user asks you to add a receipt, prefer telling them to use the form. Only edit `SEED` when they want the change baked into the source (e.g. a canonical starter entry).
 
 ## Current trip config
 
