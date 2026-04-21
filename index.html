@@ -98,10 +98,21 @@
   table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
   thead th { text-align: left; padding: 10px 16px; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted); background: var(--surface2); border-bottom: 1px solid var(--border); font-weight: 600; }
   thead th:last-child { text-align: right; }
+  thead th[data-sort] { cursor: pointer; user-select: none; transition: color 0.15s; }
+  thead th[data-sort]:hover { color: var(--white); }
+  .sort-ind { display: inline-block; margin-left: 4px; opacity: 0.35; font-size: 0.9em; transition: opacity 0.15s, color 0.15s; }
+  thead th[data-sort].active { color: var(--white); }
+  thead th[data-sort].active .sort-ind { opacity: 1; color: var(--olive); }
   tbody tr { border-bottom: 1px solid var(--border); transition: background 0.12s; }
   tbody tr:last-child { border-bottom: none; }
   tbody tr:hover { background: rgba(168,184,50,0.07); }
   tbody td { padding: 13px 16px; vertical-align: middle; }
+  tbody tr.just-added { animation: justAdded 1.6s ease-out; }
+  @keyframes justAdded {
+    0%   { background: rgba(168,184,50,0.42); }
+    60%  { background: rgba(168,184,50,0.25); }
+    100% { background: transparent; }
+  }
 
   .meal-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.55rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; }
   .meal-breakfast { background: rgba(91,191,122,0.18); color: var(--green-nd); }
@@ -120,8 +131,24 @@
   .add-btn { background: var(--olive); color: var(--bg-dark); border: none; padding: 10px 18px; border-radius: 6px; font-family: inherit; font-weight: 700; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; cursor: pointer; transition: opacity 0.15s, transform 0.05s; }
   .add-btn:hover, .add-btn:focus { opacity: 0.88; outline: none; }
   .add-btn:active { transform: translateY(1px); }
-  .add-form { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 14px; display: none; }
-  .add-form.open { display: block; }
+  .add-form {
+    background: var(--surface);
+    border: 1px solid transparent;
+    border-radius: 10px;
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    padding: 0 16px;
+    margin-bottom: 0;
+    transition: max-height 0.32s ease, opacity 0.22s ease 0.05s, padding 0.32s ease, margin-bottom 0.32s ease, border-color 0.32s ease;
+  }
+  .add-form.open {
+    max-height: 520px;
+    opacity: 1;
+    padding: 16px;
+    margin-bottom: 14px;
+    border-color: var(--border);
+  }
   .form-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
   @media(min-width:600px) { .form-grid { grid-template-columns: 1fr 1fr; } }
   .form-field { display: flex; flex-direction: column; gap: 4px; }
@@ -219,10 +246,10 @@
     <table>
       <thead>
         <tr>
-          <th>Day</th>
-          <th>Meal</th>
-          <th>Location</th>
-          <th>Cost (CAD)</th>
+          <th data-sort="day">Day<span class="sort-ind">↕</span></th>
+          <th data-sort="meal">Meal<span class="sort-ind">↕</span></th>
+          <th data-sort="location">Location<span class="sort-ind">↕</span></th>
+          <th data-sort="cost">Cost (CAD)<span class="sort-ind">↕</span></th>
         </tr>
       </thead>
       <tbody id="rows"></tbody>
@@ -267,6 +294,29 @@ function saveMeals() {
 
 let meals = loadMeals();
 
+const MEAL_ORDER = { Breakfast: 0, Lunch: 1, Dinner: 2, Snack: 3 };
+const DAY_ORDER = {};
+DAYS.forEach((d, i) => { DAY_ORDER[d.key] = i; });
+
+// sort.col === null means "insertion order, newest first" (default)
+let sort = { col: null, dir: 'desc' };
+let recentlyAddedIdx = -1;
+
+function sortedMeals() {
+  const indexed = meals.map((m, i) => ({ ...m, _i: i }));
+  if (!sort.col) {
+    return indexed.sort((a, b) => b._i - a._i);
+  }
+  const cmp = {
+    day:      (a, b) => (DAY_ORDER[a.day] ?? 99) - (DAY_ORDER[b.day] ?? 99),
+    meal:     (a, b) => (MEAL_ORDER[a.mealType] ?? 99) - (MEAL_ORDER[b.mealType] ?? 99),
+    location: (a, b) => a.location.localeCompare(b.location),
+    cost:     (a, b) => a.cost - b.cost,
+  }[sort.col];
+  const factor = sort.dir === 'asc' ? 1 : -1;
+  return indexed.sort((a, b) => cmp(a, b) * factor || a._i - b._i);
+}
+
 function render() {
   renderBudgetStrip();
   renderTable();
@@ -298,12 +348,14 @@ function renderTable() {
   const tbody = document.getElementById('rows');
   tbody.innerHTML = '';
   if (!meals.length) {
-    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:48px;color:#7aada5;font-size:0.8rem">No meals logged yet — send a receipt!</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:48px;color:#7aada5;font-size:0.8rem">No meals logged yet — tap + Add Meal.</td></tr>';
     return;
   }
-  meals.forEach(m => {
+  sortedMeals().forEach(m => {
     const tr = document.createElement('tr');
     const cls = 'meal-' + m.mealType.toLowerCase();
+    tr.dataset.idx = m._i;
+    if (m._i === recentlyAddedIdx) tr.classList.add('just-added');
     tr.innerHTML = `
       <td class="day-tag">${esc(m.day)}</td>
       <td><span class="meal-badge ${cls}">${esc(m.mealType)}</span></td>
@@ -316,6 +368,38 @@ function renderTable() {
   tr.className = 'total-row';
   tr.innerHTML = `<td colspan="3">Total</td><td class="cost">$${total.toFixed(2)}</td>`;
   tbody.appendChild(tr);
+}
+
+function updateSortIndicators() {
+  document.querySelectorAll('thead th[data-sort]').forEach(th => {
+    const col = th.dataset.sort;
+    const ind = th.querySelector('.sort-ind');
+    if (sort.col === col) {
+      th.classList.add('active');
+      ind.textContent = sort.dir === 'asc' ? '↑' : '↓';
+    } else {
+      th.classList.remove('active');
+      ind.textContent = '↕';
+    }
+  });
+}
+
+function setSort(col) {
+  if (sort.col === col) {
+    sort.dir = sort.dir === 'asc' ? 'desc' : 'asc';
+  } else {
+    sort.col = col;
+    sort.dir = 'asc';
+  }
+  updateSortIndicators();
+  renderTable();
+}
+
+function initSort() {
+  document.querySelectorAll('thead th[data-sort]').forEach(th => {
+    th.addEventListener('click', () => setSort(th.dataset.sort));
+  });
+  updateSortIndicators();
 }
 
 function renderStats() {
@@ -367,14 +451,20 @@ function initForm() {
     if (!day || !mealType || !location || !isFinite(cost)) return;
     meals.push({ day, mealType, location, cost });
     saveMeals();
-    render();
+    recentlyAddedIdx = meals.length - 1;
+    form.classList.remove('open');
     form.reset();
     if (todayMatch) daySel.value = todayMatch.key;
-    form.classList.remove('open');
+    // re-render after the form starts collapsing so the highlight draws attention
+    setTimeout(() => {
+      render();
+      setTimeout(() => { recentlyAddedIdx = -1; }, 1700);
+    }, 150);
   });
 }
 
 initForm();
+initSort();
 render();
 </script>
 
