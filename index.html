@@ -301,12 +301,14 @@
   .day-tag { font-size: 0.72rem; color: var(--muted); font-weight: 500; white-space: nowrap; }
   .location { color: var(--muted); font-size: 0.77rem; display: flex; align-items: center; gap: 6px; }
   .receipt-btn {
-    background: none; border: none; color: var(--muted);
+    background: none; border: none; color: var(--olive);
     cursor: pointer; padding: 2px; flex-shrink: 0;
     display: inline-flex; align-items: center;
-    transition: color 0.15s;
+    opacity: 0.7;
+    transition: opacity 0.15s, transform 0.1s;
   }
-  .receipt-btn:hover { color: var(--olive); }
+  .receipt-btn:hover { opacity: 1; }
+  .receipt-btn:active { transform: scale(0.92); }
 
   #receipt-modal {
     position: fixed; inset: 0;
@@ -755,7 +757,7 @@ function renderTable() {
       <div class="meal-row grid-row${justAdded}">
         <div class="day-tag">${esc(m.day)}</div>
         <div><span class="meal-badge ${badgeCls}">${esc(m.mealType)}</span></div>
-        <div class="location"><span>${esc(m.location)}</span>${m.receipt ? `<button type="button" class="receipt-btn" data-receipt="${esc(m.receipt)}" title="View receipt" aria-label="View receipt"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></button>` : ''}</div>
+        <div class="location"><span>${esc(m.location)}</span>${m.receipt ? `<button type="button" class="receipt-btn" data-receipt="${esc(m.receipt)}" title="View receipt" aria-label="View receipt"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></button>` : ''}</div>
         <div class="cost"><span class="cost-wrap"><button type="button" class="row-delete-x" aria-label="Delete meal">×</button>$${m.cost.toFixed(2)}</span></div>
       </div>
       <div class="confirm-overlay">
