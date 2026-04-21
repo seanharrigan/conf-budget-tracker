@@ -4,5 +4,11 @@
     "mealType": "Breakfast",
     "location": "Air Canada AC342 (YVR→YOW)",
     "cost": 13.6
+  },
+  {
+    "day": "Tue Apr 21",
+    "mealType": "Lunch",
+    "location": "Ottawa",
+    "cost": 12
   }
 ]
