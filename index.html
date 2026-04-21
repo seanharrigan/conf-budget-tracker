@@ -100,9 +100,29 @@
   thead th:last-child { text-align: right; }
   thead th[data-sort] { cursor: pointer; user-select: none; transition: color 0.15s; }
   thead th[data-sort]:hover { color: var(--white); }
-  .sort-ind { display: inline-block; margin-left: 4px; opacity: 0.35; font-size: 0.9em; transition: opacity 0.15s, color 0.15s; }
   thead th[data-sort].active { color: var(--white); }
-  thead th[data-sort].active .sort-ind { opacity: 1; color: var(--olive); }
+  .sort-ind {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-left: 6px;
+    vertical-align: middle;
+    position: relative;
+    top: -1px;
+  }
+  .sort-ind::before, .sort-ind::after {
+    content: '';
+    width: 0;
+    height: 0;
+    border-left: 3.5px solid transparent;
+    border-right: 3.5px solid transparent;
+    opacity: 0.32;
+    transition: opacity 0.15s, border-color 0.15s;
+  }
+  .sort-ind::before { border-bottom: 4px solid currentColor; }
+  .sort-ind::after  { border-top:    4px solid currentColor; }
+  thead th[data-sort].asc  .sort-ind::before { opacity: 1; border-bottom-color: var(--olive); }
+  thead th[data-sort].desc .sort-ind::after  { opacity: 1; border-top-color:    var(--olive); }
   tbody tr { border-bottom: 1px solid var(--border); transition: background 0.12s; }
   tbody tr:last-child { border-bottom: none; }
   tbody tr:hover { background: rgba(168,184,50,0.07); }
@@ -247,10 +267,10 @@
     <table>
       <thead>
         <tr>
-          <th data-sort="day">Day<span class="sort-ind">↕</span></th>
-          <th data-sort="meal">Meal<span class="sort-ind">↕</span></th>
-          <th data-sort="location">Location<span class="sort-ind">↕</span></th>
-          <th data-sort="cost">Cost (CAD)<span class="sort-ind">↕</span></th>
+          <th data-sort="day">Day<span class="sort-ind"></span></th>
+          <th data-sort="meal">Meal<span class="sort-ind"></span></th>
+          <th data-sort="location">Location<span class="sort-ind"></span></th>
+          <th data-sort="cost">Cost (CAD)<span class="sort-ind"></span></th>
         </tr>
       </thead>
       <tbody id="rows"></tbody>
@@ -373,15 +393,10 @@ function renderTable() {
 
 function updateSortIndicators() {
   document.querySelectorAll('thead th[data-sort]').forEach(th => {
-    const col = th.dataset.sort;
-    const ind = th.querySelector('.sort-ind');
-    if (sort.col === col) {
-      th.classList.add('active');
-      ind.textContent = sort.dir === 'asc' ? '↑' : '↓';
-    } else {
-      th.classList.remove('active');
-      ind.textContent = '↕';
-    }
+    const active = sort.col === th.dataset.sort;
+    th.classList.toggle('active', active);
+    th.classList.toggle('asc',  active && sort.dir === 'asc');
+    th.classList.toggle('desc', active && sort.dir === 'desc');
   });
 }
 
