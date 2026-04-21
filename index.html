@@ -139,6 +139,8 @@
     overflow: hidden;
     border-bottom: 1px solid var(--border);
     background: var(--red);
+    opacity: 1;
+    transition: max-height 0.28s ease, opacity 0.22s ease, border-bottom-width 0.28s ease;
   }
   .row-wrap:last-of-type { border-bottom: none; }
 
@@ -185,7 +187,7 @@
   .row-delete-x:hover { opacity: 1; color: var(--red); }
   @media (hover: none) { .row-delete-x { display: none; } }
 
-  .meal-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.55rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; }
+  .meal-badge { display: inline-block; box-sizing: border-box; padding: 3px 8px; border-radius: 4px; font-size: 0.55rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; min-width: 72px; text-align: center; }
   .meal-breakfast { background: rgba(91,191,122,0.18); color: var(--green-nd); }
   .meal-lunch     { background: rgba(168,184,50,0.18); color: var(--olive); }
   .meal-dinner    { background: rgba(124,111,191,0.2);  color: var(--purple); }
@@ -453,11 +455,32 @@ function renderTable() {
   tbody.appendChild(totalDiv);
 }
 
+let isDeleting = false;
 function deleteMeal(idx) {
+  if (isDeleting) return;
   if (idx < 0 || idx >= meals.length) return;
-  meals.splice(idx, 1);
-  saveMeals();
-  render();
+  const wrap = document.querySelector(`.row-wrap[data-idx="${idx}"]`);
+  if (!wrap) {
+    meals.splice(idx, 1);
+    saveMeals();
+    render();
+    return;
+  }
+  isDeleting = true;
+  wrap.style.maxHeight = wrap.offsetHeight + 'px';
+  void wrap.offsetHeight; // force reflow so the starting max-height is registered
+  requestAnimationFrame(() => {
+    wrap.style.maxHeight = '0';
+    wrap.style.opacity = '0';
+    wrap.style.borderBottomWidth = '0';
+    wrap.style.pointerEvents = 'none';
+  });
+  setTimeout(() => {
+    meals.splice(idx, 1);
+    saveMeals();
+    render();
+    isDeleting = false;
+  }, 300);
 }
 
 function closeAllRevealed(except) {
@@ -569,8 +592,17 @@ function renderStats() {
 
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
+function defaultMealForNow() {
+  const h = new Date().getHours();
+  if (h >= 4  && h < 11) return 'Breakfast';
+  if (h >= 11 && h < 15) return 'Lunch';
+  if (h >= 17 && h < 22) return 'Dinner';
+  return 'Snack';
+}
+
 function initForm() {
   const daySel = document.getElementById('f-day');
+  const mealSel = document.getElementById('f-meal');
   DAYS.forEach(d => {
     const opt = document.createElement('option');
     opt.value = d.key;
@@ -580,7 +612,11 @@ function initForm() {
 
   const todayAbbrev = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date().getDay()];
   const todayMatch = DAYS.find(d => d.key.startsWith(todayAbbrev));
-  if (todayMatch) daySel.value = todayMatch.key;
+  const resetDefaults = () => {
+    if (todayMatch) daySel.value = todayMatch.key;
+    mealSel.value = defaultMealForNow();
+  };
+  resetDefaults();
 
   const form = document.getElementById('add-form');
   const toggleBtn = document.getElementById('toggle-add');
@@ -600,13 +636,13 @@ function initForm() {
   cancelBtn.addEventListener('click', () => {
     form.classList.remove('open');
     form.reset();
-    if (todayMatch) daySel.value = todayMatch.key;
+    resetDefaults();
   });
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     const day = daySel.value;
-    const mealType = document.getElementById('f-meal').value;
+    const mealType = mealSel.value;
     const location = document.getElementById('f-location').value.trim();
     const cost = parseFloat(document.getElementById('f-cost').value);
     if (!day || !mealType || !location || !isFinite(cost)) return;
@@ -615,12 +651,9 @@ function initForm() {
     recentlyAddedIdx = meals.length - 1;
     form.classList.remove('open');
     form.reset();
-    if (todayMatch) daySel.value = todayMatch.key;
-    // re-render after the form starts collapsing so the highlight draws attention
-    setTimeout(() => {
-      render();
-      setTimeout(() => { recentlyAddedIdx = -1; }, 1700);
-    }, 150);
+    resetDefaults();
+    render();
+    setTimeout(() => { recentlyAddedIdx = -1; }, 1700);
   });
 }
 
