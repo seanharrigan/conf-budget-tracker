@@ -527,18 +527,24 @@ function showSyncStatus(state) {
 }
 
 async function loadMeals() {
+  let ghMeals = null;
   try {
     const res = await fetch(RAW_URL + '?_=' + Date.now());
     if (res.ok) {
       const data = await res.json();
-      if (Array.isArray(data)) return data;
+      if (Array.isArray(data)) ghMeals = data;
     }
   } catch (e) {}
+
+  let localMeals = null;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) localMeals = JSON.parse(raw);
   } catch (e) {}
-  return SEED.slice();
+
+  // Prefer whichever source has more entries (avoids overwriting local data on first sync)
+  if (ghMeals && localMeals) return ghMeals.length >= localMeals.length ? ghMeals : localMeals;
+  return ghMeals || localMeals || SEED.slice();
 }
 
 function saveMeals() {
@@ -549,19 +555,20 @@ function saveMeals() {
 async function saveToGitHub(mealsData) {
   showSyncStatus('saving');
   try {
-    const headers = {
-      Authorization: `Bearer ${ghToken()}`,
-      Accept: 'application/vnd.github+json',
-      'Content-Type': 'application/json'
-    };
-    const getRes = await fetch(API_URL, { headers });
+    // GET without auth so SHA retrieval always works on a public repo
+    const getRes = await fetch(API_URL, { headers: { Accept: 'application/vnd.github+json' } });
     let sha;
     if (getRes.ok) sha = (await getRes.json()).sha;
 
     const body = JSON.stringify(mealsData, null, 2);
     const encoded = btoa(unescape(encodeURIComponent(body)));
     const putRes = await fetch(API_URL, {
-      method: 'PUT', headers,
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${ghToken()}`,
+        Accept: 'application/vnd.github+json',
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify({ message: 'Update meals', content: encoded, ...(sha && { sha }), branch: GH_BRANCH })
     });
     showSyncStatus(putRes.ok ? 'saved' : 'error');
