@@ -140,6 +140,7 @@
   .meal-table {
     display: grid;
     grid-template-columns: 86px 82px 1fr 90px;
+    column-gap: 6px;
   }
   /* Make #rows layout-transparent so .row-wrap children sit directly in the grid */
   #rows { display: contents; }
@@ -155,10 +156,10 @@
     padding: 10px 12px;
     font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.14em;
     color: var(--muted); font-weight: 600;
-    display: flex; align-items: center;
+    display: flex; align-items: center; justify-content: center;
   }
   .grid-head > div:first-child { padding-left: 16px; }
-  .grid-head > div:last-child  { padding-right: 16px; justify-content: flex-end; }
+  .grid-head > div:last-child  { padding-right: 16px; }
   .grid-head > div[data-sort] { cursor: pointer; user-select: none; transition: color 0.15s; }
   .grid-head > div[data-sort]:hover,
   .grid-head > div[data-sort].active { color: var(--white); }
@@ -206,6 +207,7 @@
   .meal-row > * { padding: 13px 12px; }
   .meal-row > *:first-child { padding-left: 16px; }
   .meal-row > *:last-child  { padding-right: 16px; }
+  .meal-row > :nth-child(2) { text-align: center; }
   .meal-row:hover { background: #234a45; }
   .row-wrap.revealed .meal-row { transform: translateX(-84px); }
   .meal-row.just-added { animation: justAdded 1.8s ease-out forwards; }
@@ -296,10 +298,10 @@
   .meal-dinner    { background: rgba(124,111,191,0.2);  color: var(--purple); }
   .meal-snack     { background: rgba(138,158,170,0.2);  color: var(--grey-blu); }
 
-  .cost { text-align: right; font-weight: 700; color: var(--offwhite); font-variant-numeric: tabular-nums; }
+  .cost { text-align: center; font-weight: 700; color: var(--offwhite); font-variant-numeric: tabular-nums; }
   .cost-wrap { position: relative; display: inline-block; }
-  .day-tag { font-size: 0.72rem; color: var(--muted); font-weight: 500; white-space: nowrap; display: flex; flex-direction: column; align-items: flex-start; gap: 5px; }
-  .location { color: var(--muted); font-size: 0.77rem; }
+  .day-tag { font-size: 0.72rem; color: var(--muted); font-weight: 500; white-space: nowrap; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+  .location { color: var(--muted); font-size: 0.77rem; text-align: center; }
   @media (max-width: 699px) {
     .day-tag { font-size: 0.62rem; }
     .location { font-size: 0.62rem; }
