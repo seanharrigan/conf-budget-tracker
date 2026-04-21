@@ -1,0 +1,17 @@
+<svg viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="52" height="52" rx="10" fill="#142926"/>
+  <g transform="translate(0,6)">
+    <line x1="10" y1="20" x2="26" y2="6"  stroke="#a8b832" stroke-width="1.6" opacity="0.8"/>
+    <line x1="10" y1="20" x2="26" y2="34" stroke="#a8b832" stroke-width="1.6" opacity="0.8"/>
+    <line x1="26" y1="6"  x2="42" y2="20" stroke="#a8b832" stroke-width="1.6" opacity="0.8"/>
+    <line x1="26" y1="34" x2="42" y2="20" stroke="#a8b832" stroke-width="1.6" opacity="0.8"/>
+    <line x1="26" y1="6"  x2="26" y2="34" stroke="#7c6fbf" stroke-width="1.3" opacity="0.6"/>
+    <line x1="10" y1="20" x2="42" y2="20" stroke="#8a9eaa" stroke-width="1.3" opacity="0.5"/>
+    <circle cx="26" cy="6"  r="3.8" fill="#a8b832"/>
+    <circle cx="10" cy="20" r="3.3" fill="#d4cc3a"/>
+    <circle cx="42" cy="20" r="3.3" fill="#8a9eaa"/>
+    <circle cx="26" cy="34" r="3.3" fill="#7c6fbf"/>
+    <circle cx="26" cy="20" r="2.8" fill="#5bbf7a"/>
+    <circle cx="38" cy="10" r="2.2" fill="#4a6abf"/>
+  </g>
+</svg>

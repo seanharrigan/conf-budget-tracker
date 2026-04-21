@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Meal Tracker — CADTH Ottawa 2026</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta property="og:title" content="Meal Tracker — CADTH Ottawa 2026">
+<meta property="og:description" content="Sean Harrigan · $95 daily budget · Apr 21–24">
+<meta property="og:image" content="https://seanharrigan.github.io/conf-budget-tracker/og-image.png">
+<meta property="og:url" content="https://seanharrigan.github.io/conf-budget-tracker/">
+<meta property="og:type" content="website">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -186,7 +193,10 @@
     text-transform: uppercase; letter-spacing: 0.08em;
     cursor: pointer;
     z-index: 0;
+    transform: translateX(100%);  /* hidden until row reveals it */
+    transition: transform 0.25s ease;
   }
+  .row-wrap.revealed .row-delete { transform: translateX(0); }
   .row-delete:active { background: #b84040; }
 
   .row-delete-x {
