@@ -96,16 +96,21 @@
 
   .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; font-size: 0.82rem; }
 
-  .grid-row {
+  /* Single shared grid — header and every body row inherit the same 4 columns via subgrid */
+  .meal-table {
     display: grid;
     grid-template-columns: 86px 82px 1fr 90px;
-    align-items: center;
   }
-  .grid-row > * { padding: 13px 12px; }
-  .grid-row > *:first-child { padding-left: 16px; }
-  .grid-row > *:last-child  { padding-right: 16px; }
+  /* Make #rows layout-transparent so .row-wrap children sit directly in the grid */
+  #rows { display: contents; }
 
-  .grid-head { background: var(--surface2); border-bottom: 1px solid var(--border); }
+  .grid-head {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: subgrid;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
   .grid-head > div {
     padding: 10px 12px;
     font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.14em;
@@ -135,6 +140,9 @@
   .grid-head > div[data-sort].desc .sort-ind::after  { opacity: 1; border-top-color:    var(--olive); }
 
   .row-wrap {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: subgrid;
     position: relative;
     overflow: hidden;
     border-bottom: 1px solid var(--border);
@@ -145,12 +153,19 @@
   .row-wrap:last-of-type { border-bottom: none; }
 
   .meal-row {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: subgrid;
+    align-items: center;
     position: relative;
     background: var(--surface);
     z-index: 1;
     transition: transform 0.25s ease, background 0.12s;
     touch-action: pan-y;
   }
+  .meal-row > * { padding: 13px 12px; }
+  .meal-row > *:first-child { padding-left: 16px; }
+  .meal-row > *:last-child  { padding-right: 16px; }
   .meal-row:hover { background: #234a45; }
   .row-wrap.revealed .meal-row { transform: translateX(-84px); }
   .meal-row.just-added { animation: justAdded 1.6s ease-out; }
@@ -193,22 +208,23 @@
   .meal-dinner    { background: rgba(124,111,191,0.2);  color: var(--purple); }
   .meal-snack     { background: rgba(138,158,170,0.2);  color: var(--grey-blu); }
 
-  .cost { text-align: right; font-weight: 700; color: var(--offwhite); font-variant-numeric: tabular-nums; justify-self: end; display: inline-flex; align-items: center; }
-  .grid-row > .cost { justify-content: flex-end; }
+  .cost { text-align: right; font-weight: 700; color: var(--offwhite); font-variant-numeric: tabular-nums; display: flex; align-items: center; justify-content: flex-end; }
   .day-tag { font-size: 0.72rem; color: var(--muted); font-weight: 500; white-space: nowrap; }
   .location { color: var(--muted); font-size: 0.77rem; }
 
   .empty-row { padding: 48px 16px; text-align: center; color: var(--muted); font-size: 0.8rem; }
 
   .total-row {
+    grid-column: 1 / -1;
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: subgrid;
     background: var(--surface2);
     border-top: 2px solid var(--olive);
     font-weight: 700; color: var(--white); font-size: 0.85rem;
+    align-items: center;
   }
-  .total-row > div:first-child { padding: 12px 16px; }
-  .total-row > .cost { color: var(--olive); font-size: 1.05rem; padding: 12px 16px; }
+  .total-row > .total-label { grid-column: 1 / 4; padding: 12px 16px; }
+  .total-row > .cost { grid-column: 4; color: var(--olive); font-size: 1.05rem; padding: 12px 16px; }
 
   .add-bar { display: flex; justify-content: flex-end; margin-bottom: 12px; }
   .add-btn { background: var(--olive); color: var(--bg-dark); border: none; padding: 10px 18px; border-radius: 6px; font-family: inherit; font-weight: 700; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; cursor: pointer; transition: opacity 0.15s, transform 0.05s; }
@@ -346,13 +362,15 @@
 
   <div class="section-label">Expense Log</div>
   <div class="table-wrap">
-    <div class="grid-row grid-head">
-      <div data-sort="day">Day<span class="sort-ind"></span></div>
-      <div data-sort="meal">Meal<span class="sort-ind"></span></div>
-      <div data-sort="location">Location<span class="sort-ind"></span></div>
-      <div data-sort="cost">Cost<span class="sort-ind"></span></div>
+    <div class="meal-table">
+      <div class="grid-head">
+        <div data-sort="day">Day<span class="sort-ind"></span></div>
+        <div data-sort="meal">Meal<span class="sort-ind"></span></div>
+        <div data-sort="location">Location<span class="sort-ind"></span></div>
+        <div data-sort="cost">Cost<span class="sort-ind"></span></div>
+      </div>
+      <div id="rows"></div>
     </div>
-    <div id="rows"></div>
   </div>
 </div>
 
@@ -470,7 +488,7 @@ function renderTable() {
   const total = meals.reduce((s,m) => s + m.cost, 0);
   const totalDiv = document.createElement('div');
   totalDiv.className = 'total-row';
-  totalDiv.innerHTML = `<div>Total</div><div class="cost">$${total.toFixed(2)}</div>`;
+  totalDiv.innerHTML = `<div class="total-label">Total</div><div class="cost">$${total.toFixed(2)}</div>`;
   tbody.appendChild(totalDiv);
 }
 
