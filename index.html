@@ -56,7 +56,7 @@
   }
   .hero::after { content:''; position:absolute; right:-40px; top:-20px; width:180px; height:180px; border-radius:50%; border:28px solid var(--grey-blu); opacity:0.18; }
   .hero::before { content:''; position:absolute; right:30px; top:10px; width:120px; height:120px; border-radius:50%; border:16px solid var(--olive); opacity:0.22; }
-  .hero h2 { font-size: clamp(1.05rem, 4.2vw, 1.5rem); font-weight:700; line-height:1.2; margin-bottom:6px; position:relative; white-space:nowrap; }
+  .hero h2 { font-size: clamp(1.05rem, 4.2vw, 1.5rem); font-weight:700; line-height:1.2; margin-bottom:6px; position:relative; white-space:nowrap; padding-left: 6px; }
   .hero p { font-size:0.8rem; color:var(--muted); position:relative; font-weight:500; line-height:1.5; }
 
   /* Trip budget overview */
@@ -200,11 +200,15 @@
   .row-delete:active { background: #b84040; }
 
   .row-delete-x {
+    position: absolute;
+    right: 100%;
+    top: 50%;
+    transform: translateY(-50%);
     background: none; border: none;
     color: var(--muted);
     cursor: pointer;
     font-size: 1.1rem; line-height: 1;
-    padding: 0 4px; margin-left: 8px;
+    padding: 2px 8px;
     opacity: 0;
     transition: opacity 0.15s, color 0.15s;
   }
@@ -212,13 +216,53 @@
   .row-delete-x:hover { opacity: 1; color: var(--red); }
   @media (hover: none) { .row-delete-x { display: none; } }
 
+  /* Desktop delete confirmation overlay */
+  .confirm-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(20, 41, 38, 0.93);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 0 16px;
+    z-index: 2;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(12px);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+    border-radius: 0;
+  }
+  .row-wrap.confirming .confirm-overlay {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(0);
+  }
+  .confirm-msg { font-size: 0.75rem; color: var(--offwhite); flex: 1; }
+  .confirm-cancel {
+    background: transparent; color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 5px 12px; border-radius: 5px;
+    font-family: inherit; font-size: 0.72rem; font-weight: 600;
+    cursor: pointer; transition: color 0.12s, border-color 0.12s;
+  }
+  .confirm-cancel:hover { color: var(--white); border-color: var(--muted); }
+  .confirm-delete {
+    background: var(--red); color: white; border: none;
+    padding: 5px 14px; border-radius: 5px;
+    font-family: inherit; font-size: 0.72rem; font-weight: 700;
+    cursor: pointer; transition: opacity 0.12s;
+  }
+  .confirm-delete:hover { opacity: 0.82; }
+  @media (hover: none) { .confirm-overlay { display: none; } }
+
   .meal-badge { display: inline-block; box-sizing: border-box; padding: 3px 8px; border-radius: 4px; font-size: 0.55rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; min-width: 72px; text-align: center; }
   .meal-breakfast { background: rgba(91,191,122,0.18); color: var(--green-nd); }
   .meal-lunch     { background: rgba(168,184,50,0.18); color: var(--olive); }
   .meal-dinner    { background: rgba(124,111,191,0.2);  color: var(--purple); }
   .meal-snack     { background: rgba(138,158,170,0.2);  color: var(--grey-blu); }
 
-  .cost { text-align: right; font-weight: 700; color: var(--offwhite); font-variant-numeric: tabular-nums; }
+  .cost { text-align: right; font-weight: 700; color: var(--offwhite); font-variant-numeric: tabular-nums; position: relative; }
   .day-tag { font-size: 0.72rem; color: var(--muted); font-weight: 500; white-space: nowrap; }
   .location { color: var(--muted); font-size: 0.77rem; }
 
@@ -495,6 +539,11 @@ function renderTable() {
         <div><span class="meal-badge ${badgeCls}">${esc(m.mealType)}</span></div>
         <div class="location">${esc(m.location)}</div>
         <div class="cost">$${m.cost.toFixed(2)}<button type="button" class="row-delete-x" aria-label="Delete meal">×</button></div>
+      </div>
+      <div class="confirm-overlay">
+        <span class="confirm-msg">Delete this meal?</span>
+        <button type="button" class="confirm-cancel">Cancel</button>
+        <button type="button" class="confirm-delete">Delete</button>
       </div>`;
     tbody.appendChild(wrap);
     attachRowHandlers(wrap, m._i);
@@ -540,12 +589,28 @@ function closeAllRevealed(except) {
   });
 }
 
+function closeAllConfirming(except) {
+  document.querySelectorAll('.row-wrap.confirming').forEach(w => {
+    if (w !== except) w.classList.remove('confirming');
+  });
+}
+
 function attachRowHandlers(wrap, idx) {
   const row = wrap.querySelector('.meal-row');
   const deleteBtn = wrap.querySelector('.row-delete');
   const xBtn = wrap.querySelector('.row-delete-x');
+  const confirmOverlay = wrap.querySelector('.confirm-overlay');
+  const confirmCancel = wrap.querySelector('.confirm-cancel');
+  const confirmDelete = wrap.querySelector('.confirm-delete');
 
-  xBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteMeal(idx); });
+  xBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const already = wrap.classList.contains('confirming');
+    closeAllConfirming();
+    if (!already) wrap.classList.add('confirming');
+  });
+  confirmCancel.addEventListener('click', (e) => { e.stopPropagation(); wrap.classList.remove('confirming'); });
+  confirmDelete.addEventListener('click', (e) => { e.stopPropagation(); wrap.classList.remove('confirming'); deleteMeal(idx); });
   deleteBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteMeal(idx); });
 
   const REVEAL = 84;
@@ -626,9 +691,10 @@ function initSort() {
   updateSortIndicators();
 }
 
-// Tapping outside a revealed row closes it
+// Tapping outside a revealed/confirming row closes it
 document.addEventListener('click', (e) => {
   if (!e.target.closest('.row-wrap.revealed')) closeAllRevealed();
+  if (!e.target.closest('.row-wrap.confirming')) closeAllConfirming();
 });
 
 function renderStats() {
