@@ -94,26 +94,36 @@
   .section-label { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.16em; color: var(--muted); margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
   .section-label::after { content:''; flex:1; height:1px; background:var(--border); }
 
-  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
-  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-  thead th { text-align: left; padding: 10px 16px; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted); background: var(--surface2); border-bottom: 1px solid var(--border); font-weight: 600; }
-  thead th:last-child { text-align: right; }
-  thead th[data-sort] { cursor: pointer; user-select: none; transition: color 0.15s; }
-  thead th[data-sort]:hover { color: var(--white); }
-  thead th[data-sort].active { color: var(--white); }
+  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; font-size: 0.82rem; }
+
+  .grid-row {
+    display: grid;
+    grid-template-columns: minmax(78px, auto) minmax(72px, auto) 1fr minmax(80px, auto);
+    align-items: center;
+  }
+  .grid-row > * { padding: 13px 12px; }
+  .grid-row > *:first-child { padding-left: 16px; }
+  .grid-row > *:last-child  { padding-right: 16px; }
+
+  .grid-head { background: var(--surface2); border-bottom: 1px solid var(--border); }
+  .grid-head > div {
+    padding: 10px 12px;
+    font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.14em;
+    color: var(--muted); font-weight: 600;
+    display: flex; align-items: center;
+  }
+  .grid-head > div:first-child { padding-left: 16px; }
+  .grid-head > div:last-child  { padding-right: 16px; justify-content: flex-end; }
+  .grid-head > div[data-sort] { cursor: pointer; user-select: none; transition: color 0.15s; }
+  .grid-head > div[data-sort]:hover,
+  .grid-head > div[data-sort].active { color: var(--white); }
+
   .sort-ind {
-    display: inline-flex;
-    flex-direction: column;
-    gap: 2px;
-    margin-left: 6px;
-    vertical-align: middle;
-    position: relative;
-    top: -1px;
+    display: inline-flex; flex-direction: column; gap: 2px;
+    margin-left: 6px; position: relative; top: -1px;
   }
   .sort-ind::before, .sort-ind::after {
-    content: '';
-    width: 0;
-    height: 0;
+    content: ''; width: 0; height: 0;
     border-left: 3.5px solid transparent;
     border-right: 3.5px solid transparent;
     opacity: 0.32;
@@ -121,18 +131,59 @@
   }
   .sort-ind::before { border-bottom: 4px solid currentColor; }
   .sort-ind::after  { border-top:    4px solid currentColor; }
-  thead th[data-sort].asc  .sort-ind::before { opacity: 1; border-bottom-color: var(--olive); }
-  thead th[data-sort].desc .sort-ind::after  { opacity: 1; border-top-color:    var(--olive); }
-  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.12s; }
-  tbody tr:last-child { border-bottom: none; }
-  tbody tr:hover { background: rgba(168,184,50,0.07); }
-  tbody td { padding: 13px 16px; vertical-align: middle; }
-  tbody tr.just-added { animation: justAdded 1.6s ease-out; }
-  @keyframes justAdded {
-    0%   { background: rgba(168,184,50,0.42); }
-    60%  { background: rgba(168,184,50,0.25); }
-    100% { background: transparent; }
+  .grid-head > div[data-sort].asc  .sort-ind::before { opacity: 1; border-bottom-color: var(--olive); }
+  .grid-head > div[data-sort].desc .sort-ind::after  { opacity: 1; border-top-color:    var(--olive); }
+
+  .row-wrap {
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid var(--border);
+    background: var(--red);
   }
+  .row-wrap:last-of-type { border-bottom: none; }
+
+  .meal-row {
+    position: relative;
+    background: var(--surface);
+    z-index: 1;
+    transition: transform 0.25s ease, background 0.12s;
+    touch-action: pan-y;
+  }
+  .meal-row:hover { background: #234a45; }
+  .row-wrap.revealed .meal-row { transform: translateX(-84px); }
+  .meal-row.just-added { animation: justAdded 1.6s ease-out; }
+  @keyframes justAdded {
+    0%   { background-color: rgba(168,184,50,0.42); }
+    60%  { background-color: rgba(168,184,50,0.25); }
+    100% { background-color: var(--surface); }
+  }
+
+  .row-delete {
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
+    width: 84px;
+    background: var(--red);
+    color: white;
+    border: none;
+    font-family: inherit; font-weight: 700; font-size: 0.72rem;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    cursor: pointer;
+    z-index: 0;
+  }
+  .row-delete:active { background: #b84040; }
+
+  .row-delete-x {
+    background: none; border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 1.1rem; line-height: 1;
+    padding: 0 4px; margin-left: 8px;
+    opacity: 0;
+    transition: opacity 0.15s, color 0.15s;
+  }
+  .meal-row:hover .row-delete-x { opacity: 0.55; }
+  .row-delete-x:hover { opacity: 1; color: var(--red); }
+  @media (hover: none) { .row-delete-x { display: none; } }
 
   .meal-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.55rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; }
   .meal-breakfast { background: rgba(91,191,122,0.18); color: var(--green-nd); }
@@ -140,12 +191,22 @@
   .meal-dinner    { background: rgba(124,111,191,0.2);  color: var(--purple); }
   .meal-snack     { background: rgba(138,158,170,0.2);  color: var(--grey-blu); }
 
-  .cost { text-align: right; font-weight: 700; color: var(--offwhite); font-variant-numeric: tabular-nums; }
+  .cost { text-align: right; font-weight: 700; color: var(--offwhite); font-variant-numeric: tabular-nums; justify-self: end; display: inline-flex; align-items: center; }
+  .grid-row > .cost { justify-content: flex-end; }
   .day-tag { font-size: 0.72rem; color: var(--muted); font-weight: 500; white-space: nowrap; }
   .location { color: var(--muted); font-size: 0.77rem; }
 
-  .total-row td { padding: 12px 16px; font-weight: 700; background: var(--surface2); color: var(--white); border-top: 2px solid var(--olive); font-size: 0.85rem; }
-  .total-row .cost { color: var(--olive); font-size: 1.05rem; }
+  .empty-row { padding: 48px 16px; text-align: center; color: var(--muted); font-size: 0.8rem; }
+
+  .total-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    background: var(--surface2);
+    border-top: 2px solid var(--olive);
+    font-weight: 700; color: var(--white); font-size: 0.85rem;
+  }
+  .total-row > div:first-child { padding: 12px 16px; }
+  .total-row > .cost { color: var(--olive); font-size: 1.05rem; padding: 12px 16px; }
 
   .add-bar { display: flex; justify-content: flex-end; margin-bottom: 12px; }
   .add-btn { background: var(--olive); color: var(--bg-dark); border: none; padding: 10px 18px; border-radius: 6px; font-family: inherit; font-weight: 700; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; cursor: pointer; transition: opacity 0.15s, transform 0.05s; }
@@ -264,17 +325,13 @@
 
   <div class="section-label">Expense Log</div>
   <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th data-sort="day">Day<span class="sort-ind"></span></th>
-          <th data-sort="meal">Meal<span class="sort-ind"></span></th>
-          <th data-sort="location">Location<span class="sort-ind"></span></th>
-          <th data-sort="cost">Cost (CAD)<span class="sort-ind"></span></th>
-        </tr>
-      </thead>
-      <tbody id="rows"></tbody>
-    </table>
+    <div class="grid-row grid-head">
+      <div data-sort="day">Day<span class="sort-ind"></span></div>
+      <div data-sort="meal">Meal<span class="sort-ind"></span></div>
+      <div data-sort="location">Location<span class="sort-ind"></span></div>
+      <div data-sort="cost">Cost<span class="sort-ind"></span></div>
+    </div>
+    <div id="rows"></div>
   </div>
 </div>
 
@@ -369,30 +426,107 @@ function renderTable() {
   const tbody = document.getElementById('rows');
   tbody.innerHTML = '';
   if (!meals.length) {
-    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:48px;color:#7aada5;font-size:0.8rem">No meals logged yet — tap + Add Meal.</td></tr>';
+    tbody.innerHTML = '<div class="empty-row">No meals logged yet — tap + Add Meal.</div>';
     return;
   }
   sortedMeals().forEach(m => {
-    const tr = document.createElement('tr');
-    const cls = 'meal-' + m.mealType.toLowerCase();
-    tr.dataset.idx = m._i;
-    if (m._i === recentlyAddedIdx) tr.classList.add('just-added');
-    tr.innerHTML = `
-      <td class="day-tag">${esc(m.day)}</td>
-      <td><span class="meal-badge ${cls}">${esc(m.mealType)}</span></td>
-      <td class="location">${esc(m.location)}</td>
-      <td class="cost">$${m.cost.toFixed(2)}</td>`;
-    tbody.appendChild(tr);
+    const wrap = document.createElement('div');
+    wrap.className = 'row-wrap';
+    wrap.dataset.idx = m._i;
+    const justAdded = m._i === recentlyAddedIdx ? ' just-added' : '';
+    const badgeCls = 'meal-' + m.mealType.toLowerCase();
+    wrap.innerHTML = `
+      <button type="button" class="row-delete" aria-label="Delete meal">Delete</button>
+      <div class="meal-row grid-row${justAdded}">
+        <div class="day-tag">${esc(m.day)}</div>
+        <div><span class="meal-badge ${badgeCls}">${esc(m.mealType)}</span></div>
+        <div class="location">${esc(m.location)}</div>
+        <div class="cost">$${m.cost.toFixed(2)}<button type="button" class="row-delete-x" aria-label="Delete meal">×</button></div>
+      </div>`;
+    tbody.appendChild(wrap);
+    attachRowHandlers(wrap, m._i);
   });
   const total = meals.reduce((s,m) => s + m.cost, 0);
-  const tr = document.createElement('tr');
-  tr.className = 'total-row';
-  tr.innerHTML = `<td colspan="3">Total</td><td class="cost">$${total.toFixed(2)}</td>`;
-  tbody.appendChild(tr);
+  const totalDiv = document.createElement('div');
+  totalDiv.className = 'total-row';
+  totalDiv.innerHTML = `<div>Total</div><div class="cost">$${total.toFixed(2)}</div>`;
+  tbody.appendChild(totalDiv);
+}
+
+function deleteMeal(idx) {
+  if (idx < 0 || idx >= meals.length) return;
+  meals.splice(idx, 1);
+  saveMeals();
+  render();
+}
+
+function closeAllRevealed(except) {
+  document.querySelectorAll('.row-wrap.revealed').forEach(w => {
+    if (w !== except) w.classList.remove('revealed');
+  });
+}
+
+function attachRowHandlers(wrap, idx) {
+  const row = wrap.querySelector('.meal-row');
+  const deleteBtn = wrap.querySelector('.row-delete');
+  const xBtn = wrap.querySelector('.row-delete-x');
+
+  xBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteMeal(idx); });
+  deleteBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteMeal(idx); });
+
+  const REVEAL = 84;
+  const THRESHOLD = 40;
+  let startX = 0, startY = 0, dx = 0, dragging = false, decided = false, horizontal = false;
+
+  row.addEventListener('touchstart', (e) => {
+    if (e.touches.length !== 1) return;
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    dx = 0;
+    dragging = true;
+    decided = false;
+    horizontal = false;
+  }, { passive: true });
+
+  row.addEventListener('touchmove', (e) => {
+    if (!dragging) return;
+    dx = e.touches[0].clientX - startX;
+    const dy = e.touches[0].clientY - startY;
+    if (!decided) {
+      if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
+        horizontal = Math.abs(dx) > Math.abs(dy);
+        decided = true;
+        if (horizontal) closeAllRevealed(wrap);
+      }
+    }
+    if (horizontal) {
+      e.preventDefault();
+      const base = wrap.classList.contains('revealed') ? -REVEAL : 0;
+      let t = base + dx;
+      if (t > 0) t = 0;
+      if (t < -REVEAL * 1.15) t = -REVEAL * 1.15;
+      row.style.transition = 'none';
+      row.style.transform = `translateX(${t}px)`;
+    }
+  }, { passive: false });
+
+  row.addEventListener('touchend', () => {
+    if (!dragging) return;
+    dragging = false;
+    row.style.transition = '';
+    row.style.transform = '';
+    if (!horizontal) return;
+    const wasRevealed = wrap.classList.contains('revealed');
+    if (wasRevealed) {
+      if (dx > THRESHOLD) wrap.classList.remove('revealed');
+    } else {
+      if (dx < -THRESHOLD) wrap.classList.add('revealed');
+    }
+  });
 }
 
 function updateSortIndicators() {
-  document.querySelectorAll('thead th[data-sort]').forEach(th => {
+  document.querySelectorAll('.grid-head > div[data-sort]').forEach(th => {
     const active = sort.col === th.dataset.sort;
     th.classList.toggle('active', active);
     th.classList.toggle('asc',  active && sort.dir === 'asc');
@@ -412,11 +546,16 @@ function setSort(col) {
 }
 
 function initSort() {
-  document.querySelectorAll('thead th[data-sort]').forEach(th => {
+  document.querySelectorAll('.grid-head > div[data-sort]').forEach(th => {
     th.addEventListener('click', () => setSort(th.dataset.sort));
   });
   updateSortIndicators();
 }
+
+// Tapping outside a revealed row closes it
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.row-wrap.revealed')) closeAllRevealed();
+});
 
 function renderStats() {
   const total = meals.reduce((s,m) => s + m.cost, 0);
