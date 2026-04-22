@@ -295,10 +295,11 @@
   @media (hover: none) { .confirm-overlay { display: none; } }
 
   .meal-badge { display: inline-block; box-sizing: border-box; padding: 3px 8px; border-radius: 4px; font-size: 0.55rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; min-width: 72px; text-align: center; }
-  .meal-breakfast { background: rgba(91,191,122,0.18); color: var(--green-nd); }
-  .meal-lunch     { background: rgba(168,184,50,0.18); color: var(--olive); }
-  .meal-dinner    { background: rgba(124,111,191,0.2);  color: var(--purple); }
-  .meal-snack     { background: rgba(138,158,170,0.2);  color: var(--grey-blu); }
+  .meal-breakfast  { background: rgba(91,191,122,0.18); color: var(--green-nd); }
+  .meal-lunch      { background: rgba(168,184,50,0.18); color: var(--olive); }
+  .meal-dinner     { background: rgba(124,111,191,0.2);  color: var(--purple); }
+  .meal-snack      { background: rgba(138,158,170,0.2);  color: var(--grey-blu); }
+  .meal-incidental { background: rgba(212,204,58,0.18);  color: var(--yellow); }
 
   .cost { text-align: center; font-weight: 700; color: var(--offwhite); font-variant-numeric: tabular-nums; }
   .cost-wrap { position: relative; display: inline-block; }
@@ -514,6 +515,7 @@
           <option>Lunch</option>
           <option>Dinner</option>
           <option>Snack</option>
+          <option>Incidental</option>
         </select>
       </div>
       <div class="form-field">
@@ -738,7 +740,7 @@ function initInlineReceiptInput() {
 
 let meals = [];
 
-const MEAL_ORDER = { Breakfast: 0, Lunch: 1, Dinner: 2, Snack: 3 };
+const MEAL_ORDER = { Breakfast: 0, Lunch: 1, Dinner: 2, Snack: 3, Incidental: 4 };
 const DAY_ORDER = {};
 DAYS.forEach((d, i) => { DAY_ORDER[d.key] = i; });
 
