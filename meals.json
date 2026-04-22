@@ -12,5 +12,12 @@
     "location": "Bier Markt",
     "cost": 44.83,
     "receipt": "meal-1776814786936.jpeg"
+  },
+  {
+    "day": "Tue Apr 21",
+    "mealType": "Snack",
+    "location": "Arlo Hotel",
+    "cost": 12.71,
+    "receipt": "meal-1776820150391.jpeg"
   }
 ]
