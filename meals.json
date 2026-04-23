@@ -19,5 +19,12 @@
     "location": "Arlo Hotel",
     "cost": 12.71,
     "receipt": "meal-1776820150391.jpeg"
+  },
+  {
+    "day": "Thu Apr 23",
+    "mealType": "Lunch",
+    "location": "Nandos",
+    "cost": 24.96,
+    "receipt": "meal-1776964969289.jpeg"
   }
 ]
