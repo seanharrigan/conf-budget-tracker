@@ -26,5 +26,12 @@
     "location": "Nandos",
     "cost": 24.96,
     "receipt": "meal-1776964969289.jpeg"
+  },
+  {
+    "day": "Fri Apr 24",
+    "mealType": "Incidental",
+    "location": "Little Victory Cafe",
+    "cost": 5.71,
+    "receipt": "meal-1777042161045.jpeg"
   }
 ]
