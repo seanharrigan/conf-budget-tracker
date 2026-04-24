@@ -740,7 +740,7 @@ function initInlineReceiptInput() {
 
 let meals = [];
 
-const MEAL_ORDER = { Breakfast: 0, Lunch: 1, Dinner: 2, Snack: 3, Incidental: 4 };
+const MEAL_ORDER = { Dinner: 0, Incidental: 1, Snack: 2, Lunch: 3, Breakfast: 4 };
 const DAY_ORDER = {};
 DAYS.forEach((d, i) => { DAY_ORDER[d.key] = i; });
 
@@ -751,7 +751,11 @@ let recentlyAddedIdx = -1;
 function sortedMeals() {
   const indexed = meals.map((m, i) => ({ ...m, _i: i }));
   if (!sort.col) {
-    return indexed.sort((a, b) => b._i - a._i);
+    return indexed.sort((a, b) => {
+      const dayDiff = (DAY_ORDER[b.day] ?? 99) - (DAY_ORDER[a.day] ?? 99); // date desc
+      if (dayDiff !== 0) return dayDiff;
+      return (MEAL_ORDER[a.mealType] ?? 99) - (MEAL_ORDER[b.mealType] ?? 99); // meal priority
+    });
   }
   const cmp = {
     day:      (a, b) => (DAY_ORDER[a.day] ?? 99) - (DAY_ORDER[b.day] ?? 99),
