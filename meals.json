@@ -47,5 +47,19 @@
     "location": "Little Victories Cafe",
     "cost": 5.71,
     "receipt": "meal-1777042204520.jpeg"
+  },
+  {
+    "day": "Fri Apr 24",
+    "mealType": "Lunch",
+    "location": "Zak’s",
+    "cost": 43.3,
+    "receipt": "meal-1777055724874.jpeg"
+  },
+  {
+    "day": "Fri Apr 24",
+    "mealType": "Lunch",
+    "location": "Zak’s",
+    "cost": 43.3,
+    "receipt": "meal-1777055729015.jpeg"
   }
 ]
