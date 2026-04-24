@@ -70,6 +70,8 @@
   .settings-content { padding: 14px 20px; }
   .settings-desc { font-size: 0.71rem; color: var(--muted); margin-bottom: 10px; line-height: 1.55; }
   .settings-desc strong { color: var(--offwhite); font-weight: 600; }
+  .settings-desc a { color: var(--olive); text-decoration: underline; }
+  .settings-desc a:hover { color: var(--yellow); }
   .token-row { display: flex; gap: 8px; }
   .token-input {
     flex: 1; background: var(--surface); color: var(--white);
@@ -489,6 +491,7 @@
     <div class="settings-content">
       <div id="settings-no-token">
         <p class="settings-desc">Paste a GitHub fine-grained token with <strong>Contents: Read &amp; write</strong> access to this repo. Saved once, never asked again — meals sync across all your devices.</p>
+        <p class="settings-desc"><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Generate a new token →</a><br>Repository access: <strong>Only this repo</strong>. Permissions: <strong>Contents → Read and write</strong>.</p>
         <div class="token-row">
           <input type="password" class="token-input" id="token-input" placeholder="github_pat_…" autocomplete="off" spellcheck="false">
           <button type="button" class="add-btn" id="token-save">Save</button>
