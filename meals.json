@@ -33,5 +33,12 @@
     "location": "Little Victory Cafe",
     "cost": 5.71,
     "receipt": "meal-1777042161045.jpeg"
+  },
+  {
+    "day": "Thu Apr 23",
+    "mealType": "Incidental",
+    "location": "Little Victories Cafe",
+    "cost": 5.71,
+    "receipt": "meal-1777042180306.jpeg"
   }
 ]
