@@ -26,11 +26,5 @@
     "location": "Nandos",
     "cost": 24.96,
     "receipt": "meal-1776964969289.jpeg"
-  },
-  {
-    "day": "Fri Apr 24",
-    "mealType": "Breakfast",
-    "location": "hdhdu",
-    "cost": 8454
   }
 ]
