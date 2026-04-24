@@ -54,5 +54,12 @@
     "location": "Zak’s",
     "cost": 43.3,
     "receipt": "meal-1777055724874.jpeg"
+  },
+  {
+    "day": "Fri Apr 24",
+    "mealType": "Incidental",
+    "location": "Paradies Lagadère",
+    "cost": 6.2,
+    "receipt": "meal-1777062259246.jpeg"
   }
 ]
