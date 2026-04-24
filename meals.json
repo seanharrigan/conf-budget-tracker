@@ -61,5 +61,12 @@
     "location": "Paradies Lagadère",
     "cost": 6.2,
     "receipt": "meal-1777062259246.jpeg"
+  },
+  {
+    "day": "Fri Apr 24",
+    "mealType": "Dinner",
+    "location": "Air Canada (YOW-YVR)",
+    "cost": 11.24,
+    "receipt": "meal-1777071497869.jpeg"
   }
 ]
