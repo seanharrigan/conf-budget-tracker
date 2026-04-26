@@ -68,5 +68,11 @@
     "location": "Air Canada (YOW-YVR)",
     "cost": 11.24,
     "receipt": "meal-1777071497869.jpeg"
+  },
+  {
+    "day": "Fri Apr 24",
+    "mealType": "Incidental",
+    "location": "Uber (YVR - Home)",
+    "cost": 40
   }
 ]
