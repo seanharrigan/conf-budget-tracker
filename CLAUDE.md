@@ -25,7 +25,7 @@ If the user asks you to add a receipt, prefer telling them to use the form. Only
 
 ## Current trip config
 
-- **Trip:** CADTH, Ottawa, 2026
+- **Trip:** CDA, Ottawa, 2026
 - **Dates:** Tue Apr 21 – Fri Apr 24, 2026
 - **Per diem:** $95 CAD/day → $380 total
 - Edit `BUDGET` and `DAYS` at the top of the `<script>` to change these.
